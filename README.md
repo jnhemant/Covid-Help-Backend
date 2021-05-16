@@ -8,6 +8,8 @@
 
 #Steps to run the project
 #Add indices in elasticsearch and run it. (indices: oxygenCylinder, oxygenConcentrator, plasma, remdesivir)
+```
 cd ~/(path to pom.xml)
 mvn clean install
 mvn spring-boot:run
+```
