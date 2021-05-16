@@ -28,6 +28,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import javassist.NotFoundException;
+
 @Service
 public class CrudService {
 
@@ -66,11 +68,10 @@ public class CrudService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         LocalUserDetails user = (LocalUserDetails) authentication.getPrincipal();
         String createdBy = user.getId();
-        // System.out.println("createdBy" + createdBy);
 
         // check if a record for the material already exists
         GenericElasticSearchRequest searchRequest = new GenericElasticSearchRequest();
-        Map<String, String> exactMatches = new HashMap();
+        Map<String, String> exactMatches = new HashMap<String, String>();
         exactMatches.put("createdBy.keyword", createdBy);
         searchRequest.setExactMatches(exactMatches);
         String index = getIndex(materialRequest.getMaterialType());
@@ -92,54 +93,29 @@ public class CrudService {
         return null;
     }
 
-    public boolean updateStock(MaterialRequest materialRequest)
-            throws Exception {      
-        materialRequest.setDistrict(materialRequest.getDistrict().toLowerCase());
-        if(materialRequest.getCategory() != null){
-            materialRequest.setCategory(materialRequest.getCategory().toLowerCase());
-        }          
-        Material material = getStock(materialRequest.getMaterialType());
+    public boolean updateStock(MaterialUpdateRequest materialUpdateRequest, MaterialType materialType)
+            throws Exception {
+        Material material = getStock(materialType);
         if(material == null){
-            return addStock(materialRequest) != null;
+            throw new NotFoundException("No record found to update");
         }
-        String index = getIndex(materialRequest.getMaterialType());
-        materialRequest.setLastUpdatedOn(System.currentTimeMillis());
-        return crudDao.updateStock(material.getId(), materialRequest, index);
+        String index = getIndex(materialType);
+        materialUpdateRequest.setLastUpdatedOn(System.currentTimeMillis());
+        return crudDao.updateStock(material.getId(), materialUpdateRequest, index);
     }
 
     public Material getStock(MaterialType materialType) throws IOException {
         GenericElasticSearchRequest searchRequest = new GenericElasticSearchRequest();
-        // searchRequest.setOffset(offset);
-        Map<String, String> exactMatches = new HashMap();
+        Map<String, String> exactMatches = new HashMap<String, String>();
 
         // fetch createdBy from the security context
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         LocalUserDetails user = (LocalUserDetails) authentication.getPrincipal();
         String createdBy = user.getId();
         exactMatches.put("createdBy.keyword", createdBy);
-        // if(category != null && !category.isEmpty()){
-        // exactMatches.put("category", category);
         // }
         searchRequest.setExactMatches(exactMatches);
         String index = getIndex(materialType);
-        // List<String> indices = Arrays.asList(oxygenConcentratorIndex,
-        // oxygenConcentratorIndex, plasmaIndex,
-        // remdesivirIndex, generalBedsIndex, covidBedsIndex, ICUBedsIndex,
-        // ventilatorIndex);
-        // List<Material> resultList = new ArrayList<>();
-        // for (String index : indices) {
-        // EsResponse response = crudDao.getStock(searchRequest, index);
-        // if (response.getTotalHits() > 0) {
-        // ObjectMapper mapper = new ObjectMapper();
-        // mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        // for (SearchHit hit : response.getHits()) {
-        // Material material = mapper.convertValue(hit.getSourceAsMap(),
-        // Material.class);
-        // resultList.add(material);
-        // }
-        // System.out.println(JsonStream.serialize(resultList));
-        // }
-        // }
         Material material = null;
         EsResponse response = crudDao.getStock(searchRequest, index);
         if (response.getTotalHits() > 0) {
@@ -155,7 +131,7 @@ public class CrudService {
             throws IOException {
         GenericElasticSearchRequest searchRequest = new GenericElasticSearchRequest();
         // searchRequest.setOffset(offset);
-        Map<String, String> exactMatches = new HashMap();
+        Map<String, String> exactMatches = new HashMap<String, String>();
         exactMatches.put("district", district);
         if (category != null && !category.isEmpty()) {
             exactMatches.put("category", category);

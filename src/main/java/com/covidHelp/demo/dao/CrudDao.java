@@ -1,18 +1,15 @@
 package com.covidHelp.demo.dao;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Map;
 
 import com.covidHelp.demo.model.GenericElasticSearchRequest;
 import com.covidHelp.demo.model.Material;
-import com.covidHelp.demo.request.MaterialRequest;
 import com.covidHelp.demo.request.MaterialUpdateRequest;
 import com.covidHelp.demo.service.ElasticService;
 import com.covidHelp.demo.service.elasticSearch.EsRequest;
 import com.covidHelp.demo.service.elasticSearch.EsResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jsoniter.output.JsonStream;
 
 import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -45,12 +42,8 @@ public class CrudDao {
         return esResponse.getMessage().equals(DocWriteResponse.Result.CREATED.toString());
     }
 
-    public boolean updateStock(String id, MaterialRequest materialUpdateRequest, String index) throws IOException{
+    public boolean updateStock(String id, MaterialUpdateRequest materialUpdateRequest, String index) throws IOException{
         Map materialUpdateMap = new ObjectMapper().convertValue(materialUpdateRequest, Map.class);
-        materialUpdateMap.values().removeAll(Collections.singleton(null));
-        if(materialUpdateMap.containsKey("createdOn")){
-            materialUpdateMap.remove("createdOn");
-        }
         String updateStatus = elasticService.updateESRecord(new EsRequest().index(index).docId(id)
         .docObject(materialUpdateMap));
         return updateStatus.equals(DocWriteResponse.Result.UPDATED.toString()) ||
@@ -59,7 +52,6 @@ public class CrudDao {
 
     public EsResponse getStock(GenericElasticSearchRequest request, String index) throws IOException{
         BoolQueryBuilder boolQueryBuilder = esQueryHelper.buildBoolQuery(request);
-        // System.out.println(JsonStream.serialize(boolQueryBuilder));
 
         EsRequest esRequest = new EsRequest().queryBuilder(boolQueryBuilder).index(index);
 

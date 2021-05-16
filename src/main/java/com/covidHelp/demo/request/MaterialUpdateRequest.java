@@ -4,8 +4,6 @@ import java.util.List;
 
 import javax.validation.constraints.NotNull;
 
-import com.covidHelp.demo.model.MaterialType;
-
 public class MaterialUpdateRequest {
     @NotNull(message = "Quantity cannot be empty")
     private double quantity;
