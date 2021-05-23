@@ -16,6 +16,7 @@ import com.covidHelp.demo.request.MaterialRequest;
 import com.covidHelp.demo.request.MaterialUpdateRequest;
 import com.covidHelp.demo.response.MaterialListResponse;
 import com.covidHelp.demo.service.elasticSearch.EsResponse;
+import com.covidHelp.exception.ConflictException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jsoniter.output.JsonStream;
@@ -83,7 +84,7 @@ public class CrudService {
         String index = getIndex(materialRequest.getMaterialType());
         EsResponse response = crudDao.getStock(searchRequest, index);
         if (response.getTotalHits() != 0) {
-            throw new Exception("Records already exists!");
+            throw new ConflictException("Records already exists!");
         }
 
         Material material = new Material();
