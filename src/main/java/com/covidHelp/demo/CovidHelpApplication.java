@@ -8,8 +8,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication
-@Import({ElasticSearchConfig.class})
-// @EnableAutoConfiguration(exclude={DataSourceAutoConfiguration.class})     
+@Import({ElasticSearchConfig.class}) 
 @EnableJpaRepositories(basePackageClasses = UserRepository.class)
 public class CovidHelpApplication {
 

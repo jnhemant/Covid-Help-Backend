@@ -61,7 +61,7 @@ public class CrudService {
     CrudDao crudDao;
 
     /**
-     * Insert new stock into DB
+     * Insert new record into DB
      * @param materialRequest - POJO for request payload
      * @return - Created material stock
      * @throws Exception - if record is already present, or new record is not inserted
@@ -100,11 +100,11 @@ public class CrudService {
     }
 
     /**
-     * Update an existing records
+     * Update an existing record
      * @param materialUpdateRequest - POJO to replace the existing record
      * @param materialType -Type of material to be updated
      * @return - True if record is updated, otherwise false
-     * @throws Exception - if no record as such exists
+     * @throws Exception - if record is not updated
      */
     public boolean updateStock(MaterialUpdateRequest materialUpdateRequest, MaterialType materialType)
             throws Exception {

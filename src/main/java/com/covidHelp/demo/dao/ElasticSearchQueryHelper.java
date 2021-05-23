@@ -13,6 +13,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class ElasticSearchQueryHelper {
     
+    /**
+     * Build boolquery with several options
+     * @param request - filters to be used in the query
+     * @return - BoolqueryBuilder object containing all given filters
+     */
     public BoolQueryBuilder buildBoolQuery(GenericElasticSearchRequest request){
         Map<String, String> exactMatches = request.getExactMatches();
         Map<String, List<String>> exactMultiMatches = request.getExactMultiMatches();
