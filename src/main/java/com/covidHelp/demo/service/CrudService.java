@@ -60,6 +60,12 @@ public class CrudService {
     @Autowired
     CrudDao crudDao;
 
+    /**
+     * Insert new stock into DB
+     * @param materialRequest - POJO for request payload
+     * @return - Created material stock
+     * @throws Exception - if record is already present, or new record is not inserted
+     */
     public Material addStock(MaterialRequest materialRequest) throws Exception {
         materialRequest.setDistrict(materialRequest.getDistrict().toLowerCase());
         if(materialRequest.getCategory() != null){
@@ -93,6 +99,13 @@ public class CrudService {
         return null;
     }
 
+    /**
+     * Update an existing records
+     * @param materialUpdateRequest - POJO to replace the existing record
+     * @param materialType -Type of material to be updated
+     * @return - True if record is updated, otherwise false
+     * @throws Exception - if no record as such exists
+     */
     public boolean updateStock(MaterialUpdateRequest materialUpdateRequest, MaterialType materialType)
             throws Exception {
         Material material = getStock(materialType);
@@ -104,6 +117,12 @@ public class CrudService {
         return crudDao.updateStock(material.getId(), materialUpdateRequest, index);
     }
 
+    /**
+     * Get record associated with current user
+     * @param materialType - type of record to be fetched
+     * @return - fetched record
+     * @throws IOException - if exception is occurred while fetching records
+     */
     public Material getStock(MaterialType materialType) throws IOException {
         GenericElasticSearchRequest searchRequest = new GenericElasticSearchRequest();
         Map<String, String> exactMatches = new HashMap<String, String>();
@@ -113,7 +132,6 @@ public class CrudService {
         LocalUserDetails user = (LocalUserDetails) authentication.getPrincipal();
         String createdBy = user.getId();
         exactMatches.put("createdBy.keyword", createdBy);
-        // }
         searchRequest.setExactMatches(exactMatches);
         String index = getIndex(materialType);
         Material material = null;
@@ -127,13 +145,21 @@ public class CrudService {
         return material;
     }
 
+    /**
+     * Get list of records by filtering with district, materialType and category
+     * @param district - filter with provided district
+     * @param materialType - filter with provided materialType
+     * @param category - Valid in case of plasma, filter on the basis of category
+     * @return - list of fetched records
+     * @throws IOException - if exception is occurred while fetching records
+     */
     public MaterialListResponse getMaterialList(String district, MaterialType materialType, String category)
             throws IOException {
         GenericElasticSearchRequest searchRequest = new GenericElasticSearchRequest();
         // searchRequest.setOffset(offset);
         Map<String, String> exactMatches = new HashMap<String, String>();
         exactMatches.put("district", district);
-        if (category != null && !category.isEmpty()) {
+        if (materialType.equals(MaterialType.plasma) && category != null && !category.isEmpty()) {
             exactMatches.put("category", category);
         }
         searchRequest.setExactMatches(exactMatches);
@@ -152,19 +178,30 @@ public class CrudService {
         MaterialListResponse listResponse = new MaterialListResponse();
         listResponse.setDistrict(district);
         listResponse.setMaterialType(materialType);
-        if (category != null) {
+        if(materialType.equals(MaterialType.plasma) && category != null && !category.isEmpty()) {
             listResponse.setCategory(category);
         }
         listResponse.setData(resultList);
         return listResponse;
     }
 
+    /**
+     * Delete record of given materialType associated with current user
+     * @param materialType - Type of material to be deleted
+     * @return - true if record is deleted, else false
+     * @throws IOException - if no record as such is found
+     */
     public boolean deleteStock(MaterialType materialType) throws IOException {
         Material material = getStock(materialType);
         String index = getIndex(materialType);
         return crudDao.deleteStock(material.getId(), index);
     }
 
+    /**
+     * Get the index w.r.t. materialType
+     * @param materialType - Enum type variable
+     * @return - variable pointing to concerned index
+     */
     private String getIndex(MaterialType materialType) {
         String index;
         switch (materialType) {
